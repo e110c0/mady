@@ -32,12 +32,13 @@ program
     '(if unavailable, the next available one will be used)', Number, DEFAULT_PORT)
   .option('--recompile', 'Recompile translations upon launch')
   .option('--importV0 [dir]', 'Import a "v0" (old) locale folder')
+  .option('--readICUMessages', 'Work on previoulsy extracted messages')
   .parse(process.argv);
 
 const cliOptions = program.opts();
 
 mainStory.info('startup', 'CLI options:', { attach: cliOptions });
-db.init({ localeDir: cliOptions.dir, fRecompile: cliOptions.recompile });
+db.init({ localeDir: cliOptions.dir, fRecompile: cliOptions.recompile , readICUMessages: cliOptions.readICUMessages});
 if (cliOptions.importV0) {
   db.importV0(cliOptions.importV0);
 } else {

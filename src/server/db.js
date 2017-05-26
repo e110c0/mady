@@ -41,11 +41,15 @@ const RESPONSE_DELAY = 0;
 // ==============================================
 // Init
 // ==============================================
+let _readICUMessages = false;
+
 function init(options: {
   fRecompile: boolean,
   localeDir: string,
+  readICUMessages: boolean
 }) {
   initLocaleDir(options);
+  _readICUMessages = options.readICUMessages;
   const fMigrated = initConfig();
   initKeys();
   initTranslations();
@@ -186,9 +190,10 @@ function deleteKey(id: string): BluebirdPromise<?InternalKeyT> {
   .then(() => item);
 }
 
-function parseSrcFiles({ story }: { story: StoryT }) {
+function parseSrcFiles({ story, parseConfig }: { story: StoryT }) {
   const { srcPaths, srcExtensions, msgFunctionNames, msgRegexps } = _config;
-  const curKeys = parse({ srcPaths, srcExtensions, msgFunctionNames, msgRegexps, story });
+
+  const curKeys = parse({ srcPaths, srcExtensions, msgFunctionNames, msgRegexps, story, readICUMessages: _readICUMessages });
   const now = new Date().toISOString();
 
   const unusedKeys = [];
