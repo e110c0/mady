@@ -18,7 +18,7 @@ import * as gqlServer       from './gqlServer';
 let ssr = null;
 try {
   /* eslint-disable import/no-unresolved */
-  ssr = require('../../public/ssr/ssr.bundle');
+  ssr = require('../../public/ssr/ssr.bundle'); // eslint-disable-line global-require
   /* eslint-disable import/no-unresolved */
   mainStory.info('http', 'Loaded SSR module successfully');
 } catch (err) {

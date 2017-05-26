@@ -190,10 +190,17 @@ function deleteKey(id: string): BluebirdPromise<?InternalKeyT> {
   .then(() => item);
 }
 
-function parseSrcFiles({ story, parseConfig }: { story: StoryT }) {
+function parseSrcFiles({ story }: { story: StoryT }) {
   const { srcPaths, srcExtensions, msgFunctionNames, msgRegexps } = _config;
 
-  const curKeys = parse({ srcPaths, srcExtensions, msgFunctionNames, msgRegexps, story, readICUMessages: _readICUMessages });
+  const curKeys = parse({
+    srcPaths,
+    srcExtensions,
+    msgFunctionNames,
+    msgRegexps,
+    story,
+    readICUMessages: _readICUMessages,
+  });
   const now = new Date().toISOString();
 
   const unusedKeys = [];

@@ -53,7 +53,7 @@ const getRegexps = (
   if (msgFunctionNames) {
     msgFunctionNames.forEach((fnName) => {
       // Escape $ characters, which are legal in function names
-      const escapedFnName = fnName.replace(/([\$])/g, '\\$1');
+      const escapedFnName = fnName.replace(/([\$])/g, '\\$1'); // eslint-disable-line no-useless-escape
 
       // Looking for something like:
       // * i18n("xk s fjkl"   [other arguments to the function are not parsed]
@@ -82,7 +82,7 @@ const parse = ({ srcPaths, srcExtensions, msgFunctionNames, msgRegexps, story, r
   const keys = {};
   // only JSON!
   if (readICUMessages) {
-    srcExtensions = ['.json'];
+    srcExtensions = ['.json']; // eslint-disable-line no-param-reassign
   }
   const diveOptions = { filter: (filePath, fDir) => {
     if (fDir) return true;
@@ -122,12 +122,11 @@ const handleICUMessageObject = ({
   keys,
   filePath,
 }) => {
-
   const {
     defaultMessage: utf8,
     description,
     id: reactIntlId,
-    file,
+    // file,
     start,
     end,
   } = message;

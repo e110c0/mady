@@ -213,10 +213,11 @@ class Translator extends React.PureComponent {
   }
 
   renderFillerRow() {
-    const noKeys = this.props.viewer.keys.edges.length > 0 ? '' :
+    const noKeys = this.props.viewer.keys.edges.length > 0 ? '' : (
       <LargeMessage>
         No messages. Click on <Icon icon="refresh" disabled /> to refresh
-      </LargeMessage>;
+      </LargeMessage>
+    );
     return (
       <div
         className="tableFillerRow"

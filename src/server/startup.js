@@ -38,7 +38,11 @@ program
 const cliOptions = program.opts();
 
 mainStory.info('startup', 'CLI options:', { attach: cliOptions });
-db.init({ localeDir: cliOptions.dir, fRecompile: cliOptions.recompile , readICUMessages: cliOptions.readICUMessages});
+db.init({
+  localeDir: cliOptions.dir,
+  fRecompile: cliOptions.recompile,
+  readICUMessages: cliOptions.readICUMessages,
+});
 if (cliOptions.importV0) {
   db.importV0(cliOptions.importV0);
 } else {

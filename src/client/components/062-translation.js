@@ -138,12 +138,12 @@ class Translation extends React.Component {
       : null;
     if (!interactedWith) return elFuzzy ? <div style={style.buttons}>{elFuzzy}</div> : null;
     const elDelete = translation
-      ? <Icon
+      ? (<Icon
           icon="remove"
           title={_t('tooltip_Delete translation')}
           onClick={this.onClickDelete}
           style={style.iconButton}
-        />
+        />)
       : null;
     return (
       <div style={style.buttons}>

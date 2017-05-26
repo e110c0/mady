@@ -76,9 +76,9 @@ class Details extends React.Component {
       ? <span> {_t('msgDetailsView_until')} {this.renderDate(unusedSince)}</span>
       : ':';
     const elSources = sources.length
-      ? <ul style={style.srcList}>
+      ? (<ul style={style.srcList}>
           {sources.map((src, idx) => <li key={idx}>{src}</li>)}
-        </ul>
+        </ul>)
       : null;
     return (
       <div>
@@ -129,7 +129,7 @@ const style = {
   descriptionTitle: {
     fontWeight: 900,
     marginRight: 10,
-  }
+  },
 };
 
 // ==========================================
