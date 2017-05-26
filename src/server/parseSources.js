@@ -117,6 +117,34 @@ const parseWithRegexps = (
   });
 };
 
+const handleICUMessageObject = ({
+  message,
+  keys,
+  filePath,
+}) => {
+
+  const {
+    defaultMessage: utf8,
+    description,
+    id: reactIntlId,
+    file,
+    start,
+    end,
+  } = message;
+
+  const extras = {
+    reactIntlId,
+    description,
+    context: reactIntlId,
+  };
+
+  if (start && end) {
+    extras.start = start;
+    extras.end = end;
+  }
+  addMessageToKeys(keys, utf8, filePath, extras);
+};
+
 const parseReactIntl = (
   keys: MapOf<InternalKeyT>,
   filePath: string,
@@ -126,19 +154,7 @@ const parseReactIntl = (
   try {
     const { messages } = babelCore.transform(fileContents, babelConfig).metadata['react-intl'];
     if (messages) {
-      messages.forEach((message) => {
-        const { defaultMessage: utf8, description, id: reactIntlId, start, end } = message;
-        const extras = {
-          reactIntlId,
-          description,
-          context: reactIntlId,
-        };
-        if (start && end) {
-          extras.start = start;
-          extras.end = end;
-        }
-        addMessageToKeys(keys, utf8, filePath, extras);
-      });
+      messages.forEach((message) => handleICUMessageObject({ message, keys, filePath }));
     }
   } catch (err2) {
     story.error('parser', 'Error extracting React Intl messages', { attach: err2 });
@@ -152,34 +168,16 @@ const parseIcuMessages = (
   story: StoryT,
 ): void => {
   try {
-
     const json = JSON.parse(fileContents);
-
+    // since JSON files could be non ICU messages, we have to add some checks here
     if (json && Array.isArray(json)) {
       json.forEach((message) => {
-        if (typeof message === 'object') {
-          const {
-            defaultMessage,
-            description,
-            id: reactIntlId,
-            file,
-            start,
-            end
-          } = message;
-          console.log('message', message);
-          // we need at least id and message
-          if (reactIntlId && message) {
-            // TODO: allow to be strict with description
-            const fileMeta = file || filePath;
-            // use react id as context
-            // TODO: this should just be another
-            const utf8 = defaultMessage; //`${reactIntlId}_${defaultMessage}`;
-            addMessageToKeys(keys, utf8, fileMeta, { context: reactIntlId, reactIntlId, description, start, end });
-          }
+        // if we have an object and it has id and defaultMessage, we assume it's an ICU message
+        if (typeof message === 'object' && message.id && message.defaultMessage) {
+          handleICUMessageObject({ message, keys, filePath });
         }
       });
     }
-
   } catch (err2) {
     story.error('parser', 'Error extracting ICU messages', { attach: err2 });
   }
