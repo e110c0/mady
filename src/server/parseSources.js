@@ -11,6 +11,7 @@ import type {
   MapOf,
   StoryT,
   InternalKeyT,
+  codeLocationT,
 }                           from '../common/types';
 
 // Enable react-intl integration only when we have the necessary packages
@@ -77,6 +78,7 @@ const parse = ({ srcPaths, srcExtensions, msgFunctionNames, msgRegexps, story, r
   msgFunctionNames: Array<string>,
   msgRegexps: Array<string>,
   story: StoryT,
+  readICUMessages: boolean,
 |}): MapOf<InternalKeyT> => {
   const regexps = getRegexps(msgFunctionNames, msgRegexps);
   const keys = {};
@@ -121,7 +123,11 @@ const handleICUMessageObject = ({
   message,
   keys,
   filePath,
-}) => {
+}: {|
+  message: Object,
+  keys: MapOf<InternalKeyT>,
+  filePath: string,
+|}) :void => {
   const {
     defaultMessage: utf8,
     description,
@@ -131,7 +137,13 @@ const handleICUMessageObject = ({
     end,
   } = message;
 
-  const extras = {
+  const extras: {
+    reactIntlId: string,
+    description: string,
+    context: string,
+    start?: codeLocationT,
+    end?: codeLocationT
+  } = {
     reactIntlId,
     description,
     context: reactIntlId,
@@ -186,7 +198,10 @@ const addMessageToKeys = (
   keys: MapOf<InternalKeyT>,
   utf8: string,
   filePath: string,
-  extras?: {} = {},
+  extras?: {
+    start?: codeLocationT,
+    end?: codeLocationT
+  } = {},
 ): void => {
   // TODO: that can fail!
   const tokens = utf8.split('_');
@@ -213,8 +228,8 @@ const addMessageToKeys = (
   // TODO: if we have start/end, add that to the filePath in a nicer way
   // maybe making the sources array an object: { file, start, end }
   let sourceString = slash(filePath);
-  const { start, end } = extras;
-  if (start && end) {
+  if (extras && extras.start && extras.end) {
+    const { start, end } = extras;
     sourceString += ` (${start.line}:${start.column}-${end.line}:${end.column})`;
   }
   keys[base64].sources.push(sourceString);

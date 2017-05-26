@@ -108,3 +108,8 @@ export type ViewerT = {
   anyNode: KeyT,
   keys: Object,
 };
+
+export type codeLocationT = {
+  line: number,
+  column: number
+};
