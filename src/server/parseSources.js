@@ -71,7 +71,7 @@ const getRegexps = (
   return out;
 };
 
-const parse = ({ srcPaths, srcExtensions, msgFunctionNames, msgRegexps, story }: {|
+const parse = ({ srcPaths, srcExtensions, msgFunctionNames, msgRegexps, story, readICUMessages }: {|
   srcPaths: Array<string>,
   srcExtensions: Array<string>,
   msgFunctionNames: Array<string>,
@@ -80,6 +80,10 @@ const parse = ({ srcPaths, srcExtensions, msgFunctionNames, msgRegexps, story }:
 |}): MapOf<InternalKeyT> => {
   const regexps = getRegexps(msgFunctionNames, msgRegexps);
   const keys = {};
+  // only JSON!
+  if (readICUMessages) {
+    srcExtensions = ['.json'];
+  }
   const diveOptions = { filter: (filePath, fDir) => {
     if (fDir) return true;
     return (srcExtensions.indexOf(path.extname(filePath)) >= 0);
@@ -88,8 +92,12 @@ const parse = ({ srcPaths, srcExtensions, msgFunctionNames, msgRegexps, story }:
     const finalFilePath = path.normalize(filePath);
     story.info('parser', `Processing ${chalk.cyan.bold(finalFilePath)}...`);
     const fileContents = fs.readFileSync(finalFilePath, 'utf8');
-    parseWithRegexps(keys, finalFilePath, fileContents, regexps);
-    if (fReactIntl) parseReactIntl(keys, finalFilePath, fileContents, story);
+    // needs better on/off handling - parse plugins maybe?
+    if (!readICUMessages) {
+      parseWithRegexps(keys, finalFilePath, fileContents, regexps);
+      if (fReactIntl) parseReactIntl(keys, finalFilePath, fileContents, story);
+    }
+    if (readICUMessages) parseIcuMessages(keys, finalFilePath, fileContents, story);
   };
   srcPaths.forEach((srcPath) => diveSync(srcPath, diveOptions, diveProcess));
   return keys;
@@ -134,12 +142,53 @@ const parseReactIntl = (
   }
 };
 
+const parseIcuMessages = (
+  keys: MapOf<InternalKeyT>,
+  filePath: string,
+  fileContents: string,
+  story: StoryT,
+): void => {
+  try {
+
+    const json = JSON.parse(fileContents);
+
+    if (json && Array.isArray(json)) {
+      json.forEach((message) => {
+        if (typeof message === 'object') {
+          const {
+            defaultMessage,
+            description,
+            id: reactIntlId,
+            file,
+            start,
+            end
+          } = message;
+          console.log('message', message);
+          // we need at least id and message
+          if (reactIntlId && message) {
+            // TODO: allow to be strict with description
+            const fileMeta = file || filePath;
+            // use react id as context
+            // TODO: this should just be another
+            const utf8 = defaultMessage; //`${reactIntlId}_${defaultMessage}`;
+            addMessageToKeys(keys, utf8, fileMeta, { context: reactIntlId, reactIntlId, description, start, end });
+          }
+        }
+      });
+    }
+
+  } catch (err2) {
+    story.error('parser', 'Error extracting ICU messages', { attach: err2 });
+  }
+};
+
 const addMessageToKeys = (
   keys: MapOf<InternalKeyT>,
   utf8: string,
   filePath: string,
   extras?: {} = {},
 ): void => {
+  // TODO: that can fail!
   const tokens = utf8.split('_');
   let context;
   let text;
